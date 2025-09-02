@@ -2,13 +2,15 @@
 -- ✅ Teleport brutal pakai CFrame (NO DELAY)
 -- ✅ Auto reset 2 detik
 -- ✅ Notifikasi bawaan Roblox
--- ❌ Tidak ada UI
--- ❌ Tidak ada hotkey
+-- ✅ UI Modern Sederhana
+-- ✅ Toggle ON/OFF
+-- ❌ Tidak pakai Rayfield
 
 local Players = game:GetService("Players")
 local StarterGui = game:GetService("StarterGui")
-local player = Players.LocalPlayer
+local UserInputService = game:GetService("UserInputService")
 
+local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 local humanoid = character:WaitForChild("Humanoid")
@@ -27,10 +29,12 @@ local checkpoints = {
     Vector3.new(-76.54, 981.13, -923.71)
 }
 
+local autoSummitActive = false -- Toggle ON/OFF
+
 -- Fungsi notifikasi
 local function sendNotification(text)
     StarterGui:SetCore("SendNotification",{
-        Title = "💀 Auto Summit by Ganesha Exploit",
+        Title = "💀 Auto Summit",
         Text = text,
         Duration = 3,
     })
@@ -59,9 +63,13 @@ end
 -- Loop utama
 spawn(function()
     while true do
-        teleportCheckpoints()
-        sendNotification("Auto Summit Active")
-        autoReset()
+        if autoSummitActive then
+            teleportCheckpoints()
+            sendNotification("Auto Summit Active")
+            autoReset()
+        else
+            wait(0.1) -- Mengurangi beban saat OFF
+        end
     end
 end)
 
@@ -70,4 +78,74 @@ player.CharacterAdded:Connect(function(char)
     character = char
     humanoidRootPart = char:WaitForChild("HumanoidRootPart")
     humanoid = char:WaitForChild("Humanoid")
+end)
+
+-- =====================
+-- UI Modern Sederhana
+-- =====================
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "AutoSummitUI"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+local toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(0, 150, 0, 50)
+toggleButton.Position = UDim2.new(0, 20, 0, 20)
+toggleButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleButton.Font = Enum.Font.SourceSansBold
+toggleButton.TextSize = 18
+toggleButton.Text = "Auto Summit: OFF"
+toggleButton.Parent = screenGui
+
+-- Fungsi toggle
+local function toggleAutoSummit()
+    autoSummitActive = not autoSummitActive
+    if autoSummitActive then
+        toggleButton.Text = "Auto Summit: ON"
+        sendNotification("Auto Summit Enabled")
+    else
+        toggleButton.Text = "Auto Summit: OFF"
+        sendNotification("Auto Summit Disabled")
+    end
+end
+
+toggleButton.MouseButton1Click:Connect(toggleAutoSummit)
+
+-- Optional: toggle pakai tombol keyboard (misal T)
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.T then
+        toggleAutoSummit()
+    end
+end)
+
+-- Dragable UI
+local dragging = false
+local dragInput, mousePos, framePos
+
+toggleButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        mousePos = input.Position
+        framePos = toggleButton.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+toggleButton.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - mousePos
+        toggleButton.Position = UDim2.new(framePos.X.Scale, framePos.X.Offset + delta.X, framePos.Y.Scale, framePos.Y.Offset + delta.Y)
+    end
 end)
