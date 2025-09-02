@@ -1,16 +1,14 @@
 -- 💀 Auto Summit by Ganesha Exploit 💀
 -- ✅ Teleport brutal pakai CFrame (NO DELAY)
 -- ✅ Auto reset 2 detik
--- ✅ UI Redfield Modern dragable
--- ✅ Hotkey toggle [T]
 -- ✅ Notifikasi bawaan Roblox
+-- ❌ Tidak ada UI
+-- ❌ Tidak ada hotkey
 
 local Players = game:GetService("Players")
 local StarterGui = game:GetService("StarterGui")
 local player = Players.LocalPlayer
-local UserInputService = game:GetService("UserInputService")
 
-local teleportEnabled = false
 local character = player.Character or player.CharacterAdded:Wait()
 local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 local humanoid = character:WaitForChild("Humanoid")
@@ -29,127 +27,41 @@ local checkpoints = {
     Vector3.new(-76.54, 981.13, -923.71)
 }
 
--- UI Redfield Modern
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "RedfieldTeleportUI"
-ScreenGui.ResetOnSpawn = false
-ScreenGui.Parent = player:WaitForChild("PlayerGui")
-
-local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 200, 0, 50)
-MainFrame.Position = UDim2.new(0, 20, 0, 20)
-MainFrame.BackgroundColor3 = Color3.fromRGB(28,28,28)
-MainFrame.BorderSizePixel = 0
-MainFrame.AnchorPoint = Vector2.new(0,0)
-MainFrame.Parent = ScreenGui
-MainFrame.ClipsDescendants = true
-
-local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = UDim.new(0,8)
-UICorner.Parent = MainFrame
-
-local ToggleButton = Instance.new("TextButton")
-ToggleButton.Size = UDim2.new(1, -20, 1, -20)
-ToggleButton.Position = UDim2.new(0,10,0,10)
-ToggleButton.BackgroundColor3 = Color3.fromRGB(45,45,45)
-ToggleButton.TextColor3 = Color3.fromRGB(255,255,255)
-ToggleButton.Font = Enum.Font.GothamBold
-ToggleButton.TextSize = 18
-ToggleButton.Text = "Teleport: OFF"
-ToggleButton.AutoButtonColor = true
-ToggleButton.Parent = MainFrame
-
-local ButtonCorner = Instance.new("UICorner")
-ButtonCorner.CornerRadius = UDim.new(0,6)
-ButtonCorner.Parent = ToggleButton
-
 -- Fungsi notifikasi
-local function sendNotification(title,text)
+local function sendNotification(text)
     StarterGui:SetCore("SendNotification",{
-        Title = title;
-        Text = text;
+        Title = "💀 Auto Summit by Ganesha Exploit",
+        Text = text,
         Duration = 3,
     })
 end
 
--- Toggle teleport
-local function toggleTeleport()
-    teleportEnabled = not teleportEnabled
-    ToggleButton.Text = "Teleport: " .. (teleportEnabled and "ON" or "OFF")
-    sendNotification("💀 Auto Summit by Ganesha Exploit", teleportEnabled and "Teleport ON" or "Teleport OFF")
-end
-
-ToggleButton.MouseButton1Click:Connect(toggleTeleport)
-
--- Hotkey toggle [T]
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if not gameProcessed and input.KeyCode == Enum.KeyCode.T then
-        toggleTeleport()
-    end
-end)
-
--- Dragable UI
-local dragging = false
-local dragInput, mousePos, framePos
-
-MainFrame.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        mousePos = input.Position
-        framePos = MainFrame.Position
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
-        end)
-    end
-end)
-
-MainFrame.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement then
-        dragInput = input
-    end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-    if input == dragInput and dragging then
-        local delta = input.Position - mousePos
-        MainFrame.Position = UDim2.new(framePos.X.Scale, framePos.X.Offset + delta.X, framePos.Y.Scale, framePos.Y.Offset + delta.Y)
-    end
-end)
-
 -- Teleport brutal NO DELAY
 local function teleportCheckpoints()
     for _, pos in ipairs(checkpoints) do
-        if not teleportEnabled then break end
         if humanoidRootPart and humanoidRootPart.Parent then
-            humanoidRootPart.CFrame = CFrame.new(pos) -- langsung tanpa wait
+            humanoidRootPart.CFrame = CFrame.new(pos)
         end
     end
 end
 
 -- Auto reset 2 detik
 local function autoReset()
-    if teleportEnabled and character and character.Parent then
-        wait(2)
-        if character and character.Parent then
-            character:BreakJoints()
-            character = player.CharacterAdded:Wait()
-            humanoidRootPart = character:WaitForChild("HumanoidRootPart")
-            humanoid = character:WaitForChild("Humanoid")
-        end
+    wait(2)
+    if character and character.Parent then
+        character:BreakJoints()
+        character = player.CharacterAdded:Wait()
+        humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+        humanoid = character:WaitForChild("Humanoid")
     end
 end
 
 -- Loop utama
 spawn(function()
     while true do
-        if teleportEnabled then
-            teleportCheckpoints()
-            autoReset()
-        else
-            wait(0.1)
-        end
+        teleportCheckpoints()
+        sendNotification("Auto Summit Active")
+        autoReset()
     end
 end)
 
